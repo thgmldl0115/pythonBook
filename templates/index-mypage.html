@@ -1,0 +1,74 @@
+{% extends 'top-footer.html' %}
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+
+    <!-- Main Content -->
+    <div id="content">
+
+        <div class="container">
+
+            <!-- Outer Row -->
+            <div class="row justify-content-center">
+
+                <div class="col-xl-8 col-lg-8 col-md-8">
+
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="card-body p-0">
+                            <!-- Nested Row within Card Body -->
+                            <div class="row">
+                                <div class="col">
+                                    <div class="p-5">
+                                        <div class="text-start">
+                                            <h1 class="h3 mb-2 text-gray-800">My page</h1>
+                                            <p class="mb-4">개인정보 수정</p>
+                                        </div>
+                                        <hr>
+                                        <form class="user" action="/mypageEditDo" method="post">
+                                            <div class="form-group">
+                                                <label for="InputId" style="font-size:0.9rem; padding-left:1rem;" >
+                                                    <strong>아이디</strong></label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="InputId" name="userId" value="{{ userId }}" readonly>
+                                            </div>
+                                            <div class="form-group ">
+                                                <label for="InputNm" style="font-size:0.9rem; padding-left:1rem;">
+                                                    <strong>이름</strong></label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="InputNm" name="userNm" value="{{ userNm }}">
+                                            </div>
+                                             <div class="form-group ">
+                                                <label for="InputEmail" style="font-size:0.9rem; padding-left:1rem;">
+                                                    <strong>이메일</strong></label>
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="InputEmail" name="userEmail" value="{{ userEmail }}">
+                                            </div>
+                                            &nbsp;
+                                            <button type="submit" class="btn btn-primary btn-user btn-block">
+                                                수정
+                                            </button>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- End of Main Content -->
+        </div>
+    </div>
+
+</div>
+<!-- /.container-fluid -->
+
+
+
+{% endblock %}

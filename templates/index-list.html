@@ -1,0 +1,136 @@
+{% extends 'top-footer.html' %}
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Book List</h1>
+    <p class="mb-4">올해 {{ userNm }}님이 읽은 책 목록을 확인해보세요!</p>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">책 목록</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>책 제목</th>
+                            <th>총 페이지</th>
+                            <th>읽기 시작한 날</th>
+                            <th>전부 읽은 날</th>
+                            <th>카테고리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>러시아 혁명사 강의</td>
+                            <td>283</td>
+                            <td>2024-01-09</td>
+                            <td>2024-01-14</td>
+                            <td>역사</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>일할 자격</td>
+                            <td>306</td>
+                            <td>2024-01-14</td>
+                            <td>2024-01-17</td>
+                            <td>사회과학</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>냉소사회</td>
+                            <td>320</td>
+                            <td>2024-01-17</td>
+                            <td>2024-01-28</td>
+                            <td>사회과학</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>오늘도 살인범을 만나러 갑니다</td>
+                            <td>206</td>
+                            <td>2024-01-30</td>
+                            <td>2024-02-01</td>
+                            <td>사회과학</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>뚱뚱해서 죄송합니까? </td>
+                            <td>240</td>
+                            <td>2024-02-02</td>
+                            <td>2024-02-04</td>
+                            <td>사회과학</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>가족을 폐지하라</td>
+                            <td>184</td>
+                            <td>2024-02-04</td>
+                            <td>2024-02-07</td>
+                            <td>사회과학</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>우리가 빛의 속도로 갈 수 없다면</td>
+                            <td>341</td>
+                            <td>2024-02-18</td>
+                            <td>2024-02-29</td>
+                            <td>문학</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>있지만 없는 아이들</td>
+                            <td>231</td>
+                            <td>2024-03-02</td>
+                            <td>2024-03-06</td>
+                            <td>사회과학</td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td>저는 많이 보고 있어요</td>
+                            <td>140</td>
+                            <td>2024-03-06</td>
+                            <td>2024-03-09</td>
+                            <td>문학</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>비전공자를 위한 이해할 수 있는 IT 지식</td>
+                            <td>238</td>
+                            <td>2024-03-10</td>
+                            <td>2024-03-18</td>
+                            <td>컴퓨터과학</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <nav aria-label="Page navigation example">
+                  <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                      <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                      </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                      <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- /.container-fluid -->
+{% endblock %}
