@@ -13,28 +13,23 @@
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">목표 리스트</h6>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
+        <div class="card-body" >
+            <div class="table-responsive text-center">
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>책 제목</th>
-                            <th>작가</th>
-                            <th>카테고리</th>
-                            <th>메모</th>
-                            <th>총 페이지</th>
+                            <th width="7%">시작 여부</th>
+                            <th width="20%">제목</th>
+                            <th width="10%">작가</th>
+                            <th width="8%">카테고리</th>
+                            <th width="10%">메모</th>
+                            <th width="7%">총 페이지</th>
+                            <th width="8%">가격</th>
+                            <th width="10%">읽기 시작한 날</th>
+                            <th width="10%">마지막으로 읽은 날</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>책과 우연들</td>
-                            <td>김초엽</td>
-                            <td>문학</td>
-                            <td>에세이</td>
-                            <td>294</td>
-                        </tr>
+                    <tbody id="mylist">
                     </tbody>
                 </table>
 
@@ -42,37 +37,103 @@
         </div>
     </div>
 
-    <div class="card shadow mb-4">
+    <div class="card shadow mb-4 col-lg-9 p-0" style="margin:auto;">
+
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">목표 도서 추가</h6>
         </div>
         <div class="card-body">
-            <form action="/findbook" method="post">
+            <form action="/addBookList" method="post">
                 <div class="mb-3">
                     <label class="form-label" for="searchBook">책 검색</label>
-                    <div class="row">
+                    <div class="row" style="margin-top:.5rem; margin-bottom:.5rem;">
                         <div class="col-8">
                             <input class="form-control" type="text" id="searchBook" name="searchBook">
                         </div>
                         <div class="col-4">
-                            <button type="submit" class="btn btn-primary btn-user btn-block" id="searchBtn">
+                            <button type="button" class="btn btn-primary btn-user btn-block" id="searchBtn">
                                 검색
                             </button>
                         </div>
                     </div>
-                    &nbsp;
 
-                    <div id="search-list">
-
-                    </div>
-
+                    <label class="form-label" style="font-size:0.8rem; margin:0;">정확도 기준 상위 10건이 출력됩니다.</label>
+                    <div id="search-list"></div>
                 </div>
 
-            </form>
+                <hr style="margin-top:.5rem;">
 
-            <button type="button" class="btn btn-primary btn-user btn-block">
-                목표 도서 추가하기
-            </button>
+                <div class="mb-3">
+                    <div class="row" style="margin-top:.5rem; margin-bottom:.5rem;">
+                        <div class="col-2 text-center">
+                            <label for="title" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
+                                <strong>책 제목</strong></label>
+                        </div>
+                        <div class="col-10">
+                            <input type="text" class="form-control form-control-user" id="title" name="title">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom:.5rem;">
+                        <div class="col-2 text-center">
+                            <label for="author" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
+                                <strong>저자명</strong></label>
+                        </div>
+                        <div class="col-10">
+                            <input type="text" class="form-control form-control-user" id="author" name="author">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom:.5rem;">
+                        <div class="col-2 text-center">
+                            <label for="discount" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
+                                <strong>가격(원)</strong></label>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control form-control-user" id="discount" name="discount">
+                        </div>
+                        <div class="col-2 text-center">
+                            <label for="page" style="font-size:0.9rem; margin-top:.5rem;">
+                                <strong>페이지</strong></label>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control form-control-user" id="page" name="page">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2 text-center">
+                            <label for="category" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
+                                <strong>카테고리</strong></label>
+                        </div>
+                        <div class="col-4">
+                            <select class="form-control" aria-label="Default select example" name="category" id="category">
+                                <option selected>선택해주세요</option>
+                                <option value="000">(000) 컴퓨터 과학, 정보, 총류</option>
+                                <option value="100">(100) 철학</option>
+                                <option value="200">(200) 종교</option>
+                                <option value="300">(300) 사회과학</option>
+                                <option value="400">(400) 어학</option>
+                                <option value="500">(500) 순수과학</option>
+                                <option value="600">(600) 기술과학</option>
+                                <option value="700">(700) 예술</option>
+                                <option value="800">(800) 문학</option>
+                                <option value="900">(900) 역사</option>
+                                <option value="none">기타</option>
+                            </select>
+                        </div>
+                        <div class="col-2 text-center">
+                            <label for="memo" style="font-size:0.9rem; margin-top:.5rem;">
+                                <strong>메모</strong></label>
+                        </div>
+                        <div class="col-4">
+                            <input type="text" class="form-control form-control-user" id="memo" name="memo">
+                        </div>
+                    </div>
+                    &nbsp;
+                </div>
+                <input type="hidden" name="isbn" id="isbn">
+                <button type="submit" class="btn btn-primary btn-user btn-block">
+                    <i class="fas fa-plus fa-sm text-white-50"></i> &nbsp;목표 도서 추가하기
+                </button>
+            </form>
 
         </div>
     </div>
@@ -81,32 +142,91 @@
 <!-- /.container-fluid -->
 <script>
     $(document).ready(function(){
-            console.log({{ idx }});
-            if ({{idx}}==1){
-                if (Object.keys({{ booklists|tojson  }}).length > 0){
-                    var booklists = {{ booklists|tojson }};
-                    fn_getList(booklists);
-                }
-            }
 
+            var mybooks = {{ mybooks|tojson }};
+            console.log(mybooks);
+            $("#mylist").empty();
+            let str = "";
+            for(const book of mybooks){
+                str += "<tr>";
+                str += "<td>" + book[0] + "</td>";
+                str += "<td>" + book[1] + "</td>";
+                str += "<td>" + book[2] + "</td>";
+                str += "<td>" + book[3] + "</td>";
+                str += "<td>" + book[4] + "</td>";
+                str += "<td>" + book[5] + "</td>";
+                str += "<td>" + book[6] + "</td>";
+                str += "<td>" + book[7] + "</td>";
+                str += "<td>" + book[8] + "</td>";
+                str += "</tr>";
+            }
+            $("#mylist").append(str);
+
+            $("#searchBtn").click(function(){
+                fn_getList();
+            });
+
+            $("#search-list").change(function(){
+                console.log("^^");
+                fn_bookPrint();
+            });
 
     });
-    function fn_getList(books){
-        $("#search-list").empty();
-        let str = "";
-        for(const book of books){
-            str += '<div class="form-check">';
-            str += '<input class="form-check-input" type="radio" name="goal-book" id="'+ book['isbn']+'">';
-            str += '<label class="form-check-label" for="'+ book['isbn'] +'">';
-            str +=  book['title'] + ', (' + book['author'].replaceAll('^', ', ') + ')';
-            str += '<div style="margin:1rem;">';
-            str += '<img src="' + book['image'] + '" style="width: 30%;"></div>';
-            str += '</div>';
-            str += '</label>';
-            str += '<hr>';
-        }
-        $("#search-list").append(str);
+    function fn_getList(){
+        let url = "http://127.0.0.1:5000/findbook"
+        let books = $("#searchBook").val();
+        $.ajax({
+             url : url
+            ,type : 'POST'
+            ,data :  JSON.stringify({books:books})
+            ,dataType : 'json'
+            ,success : function(res){
+
+                console.log(res)
+                $("#search-list").empty();
+                let str = "";
+                for(const book of res){
+                    str += '<hr>';
+                    str += '<div class="form-check">';
+                    str += '<input class="form-check-input" type="radio" name="goal-book" value="';
+                    str +=  book['isbn']+ '" id="' + book['isbn'] + '" >';
+                    str += '<label class="form-check-label" for="'+ book['isbn'] +'">';
+                    str +=  book['title'] + ', (' + book['author'].replaceAll('^', ', ') + ')';
+                    str += '<div style="margin:1rem;">';
+                    str += '<img src="' + book['image'] + '" style="width: 30%;"></div>';
+                    str += '</div>';
+                    str += '</label>';
+                }
+                $("#search-list").append(str);
+
+            },error(e){
+                console.log(e);
+            }
+        })
     }
+    function fn_bookPrint(){
+        let url = "http://127.0.0.1:5000/findDetail";
+        let b_isbn = $("input:radio[name='goal-book']:checked").val();
+        $("#isbn").val(b_isbn);
+        $.ajax({
+             url : url
+            ,type : 'POST'
+            ,data :  JSON.stringify({books:b_isbn})
+            ,dataType : 'json'
+            ,success : function(res){
+                for(const book of res){
+                    $("#title").val(book['title']);
+                    $("#author").val(book['author'].replaceAll('^', ', '));
+                    $("#discount").val(book['discount']);
+                }
+
+            },error(e){
+                console.log(e);
+            }
+        })
+    }
+
+
 </script>
 
 {% endblock %}

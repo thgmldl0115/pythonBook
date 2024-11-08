@@ -77,17 +77,72 @@ def main():
 def goals():
     if 'user' in session:
         userNm = session['user']['userNm']
-        return render_template('index-goals.html', userNm=userNm, idx=0)
+        sql = """
+            SELECT b_end_yn, b_title, b_author, 
+                    CASE WHEN b_category = '000' THEN '총류, 컴퓨터과학'
+                         WHEN b_category = '100' THEN '철학, 심리학, 윤리학'
+                         WHEN b_category = '200' THEN '종교'
+                         WHEN b_category = '300' THEN '사회과학'
+                         WHEN b_category = '400' THEN '어학'
+                         WHEN b_category = '500' THEN '순수과학'
+                         WHEN b_category = '600' THEN '기술과학'
+                         WHEN b_category = '700' THEN '예술'
+                         WHEN b_category = '800' THEN '문학'
+                         WHEN b_category = '900' THEN '역사'
+                         ELSE '기타'
+                    END as b_category, 
+                    b_memo,
+                    b_page, b_dicount, 
+                    NVL(TO_CHAR(b_create_dt, 'YYYY-MM-DD'),' ') as b_create_dt, 
+                    NVL(TO_CHAR(b_update_dt, 'YYYY-MM-DD'),' ') as b_update_dt,
+                    b_end_yn
+            FROM tb_book
+            WHERE user_id=(:1) 
+            AND b_end_yn = 'N'
+        """
+        mybooks = db.fetch_all(sql, [session['user']['userId']])
+        print(mybooks)
+        return render_template('index-goals.html', userNm=userNm, mybooks=mybooks)
     return redirect("/login")
 
 from searchBookAPI import get_naver
 @app.route("/findbook", methods=['POST'])
 def findbook():
-    searchBook = request.form['searchBook']
-    booklists = get_naver(searchBook)
-    print(booklists)
-    userNm = session['user']['userNm']
-    return render_template('index-goals.html', userNm=userNm, booklists=booklists, idx=1)
+
+    data = json.loads(request.get_data())
+    booklists = get_naver(data['books'])
+
+    return booklists
+
+from searchBookAPI import get_detail
+@app.route("/findDetail", methods=['POST'])
+def findDetail():
+
+    data = json.loads(request.get_data())
+    bookdetail = get_detail(data['books'])
+
+    return bookdetail
+
+@app.route("/addBookList", methods=['POST'])
+def addBookList():
+    userId = session['user']['userId']
+    title = request.form['title']
+    author = request.form['author']
+    discount = request.form['discount']
+    isbn = request.form['isbn']
+    page = request.form['page']
+    category = request.form['category']
+    memo = request.form['memo']
+    sql = """
+        INSERT INTO tb_book(user_id, b_title, b_author, b_dicount
+                            ,b_isbn, b_page, b_category, b_memo)
+        VALUES (:id, :title, :author, :discount, :isbn, :page, :category, :memo)
+    """
+    db.execute_query(sql,
+             {"id":userId, "title":title, "author":author, "discount":discount,
+                     "isbn":isbn, "page":page, "category":category, "memo":memo})
+
+    return redirect(url_for('goals'))
 
 # 읽은 책 목록
 @app.route("/list")

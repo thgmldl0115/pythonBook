@@ -78,17 +78,41 @@ class DBManager:
 if __name__ == '__main__':
     db = DBManager()
 
-    # 예제: INSERT 쿼리 실행
-    db.execute_query("INSERT INTO tb_user (user_id, user_pw, user_nm) VALUES (:1, :2, :3)"
-                     , ("test", "test", "test"))
+    # # 예제: INSERT 쿼리 실행
+    # db.execute_query("INSERT INTO tb_user (user_id, user_pw, user_nm) VALUES (:1, :2, :3)"
+    #                  , ("test", "test", "test"))
+    #
+    # # 예제: SELECT 쿼리 실행 후 결과 출력
+    # results = db.fetch_all("SELECT * FROM tb_user")
+    # for row in results:
+    #     print(row)
+    #
+    # userId = 'aaaa'
+    # sql1 = "SELECT user_pw FROM tb_user WHERE user_id = :1"
+    # pw = db.fetch_all(sql1, [userId])
+    # print(pw)
 
-    # 예제: SELECT 쿼리 실행 후 결과 출력
-    results = db.fetch_all("SELECT * FROM tb_user")
+    results = db.fetch_all("""
+                            SELECT b_end_yn, b_title, b_author, 
+                            CASE WHEN b_category = '000' THEN '총류, 컴퓨터과학'
+                                 WHEN b_category = '100' THEN '철학, 심리학, 윤리학'
+                                 WHEN b_category = '200' THEN '종교'
+                                 WHEN b_category = '300' THEN '사회과학'
+                                 WHEN b_category = '400' THEN '어학'
+                                 WHEN b_category = '500' THEN '순수과학'
+                                 WHEN b_category = '600' THEN '기술과학'
+                                 WHEN b_category = '700' THEN '예술'
+                                 WHEN b_category = '800' THEN '문학'
+                                 WHEN b_category = '900' THEN '역사'
+                                 ELSE '기타'
+                            END as b_category, 
+                            b_page, b_dicount, 
+                            TO_CHAR(b_create_dt, 'YYYY-MM-DD') as b_create_dt, 
+                            TO_CHAR(b_update_dt, 'YYYY-MM-DD') as b_update_dt
+                    FROM tb_book
+                    WHERE user_id='aaaa'
+                            """)
     for row in results:
         print(row)
 
-    userId = 'aaaa'
-    sql1 = "SELECT user_pw FROM tb_user WHERE user_id = :1"
-    pw = db.fetch_all(sql1, [userId])
-    print(pw)
 
