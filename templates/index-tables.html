@@ -18,96 +18,15 @@
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>No</th>
                             <th>읽은 날짜</th>
                             <th>책 제목</th>
+                            <th>글쓴이</th>
                             <th>읽은 페이지</th>
                             <th>누적 페이지</th>
                             <th>총 페이지</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>2024-01-09</td>
-                            <td>러시아 혁명사 강의</td>
-                            <td>71</td>
-                            <td>71</td>
-                            <td>283</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>2024-01-10</td>
-                            <td>러시아 혁명사 강의</td>
-                            <td>53</td>
-                            <td>124</td>
-                            <td>283</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>2024-01-11</td>
-                            <td>러시아 혁명사 강의</td>
-                            <td>46</td>
-                            <td>170</td>
-                            <td>283</td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>2024-01-13</td>
-                            <td>러시아 혁명사 강의</td>
-                            <td>41</td>
-                            <td>211</td>
-                            <td>283</td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td>2024-01-14</td>
-                            <td>러시아 혁명사 강의</td>
-                            <td>72</td>
-                            <td>283</td>
-                            <td>283</td>
-                        </tr>
-                        <tr>
-                            <td>6</td>
-                            <td>2024-01-14</td>
-                            <td>일할 자격</td>
-                            <td>108</td>
-                            <td>108</td>
-                            <td>306</td>
-                        </tr>
-                        <tr>
-                            <td>7</td>
-                            <td>2024-01-15</td>
-                            <td>일할 자격</td>
-                            <td>167</td>
-                            <td>275</td>
-                            <td>306</td>
-                        </tr>
-                        <tr>
-                            <td>8</td>
-                            <td>2024-01-17</td>
-                            <td>일할 자격</td>
-                            <td>31</td>
-                            <td>306</td>
-                            <td>306</td>
-                        </tr>
-                        <tr>
-                            <td>9</td>
-                            <td>2024-01-17</td>
-                            <td>냉소사희</td>
-                            <td>44</td>
-                            <td>44</td>
-                            <td>320</td>
-                        </tr>
-                        <tr>
-                            <td>10</td>
-                            <td>2024-01-21</td>
-                            <td>냉소사회</td>
-                            <td>64</td>
-                            <td>108</td>
-                            <td>320</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="myrecord"></tbody>
                 </table>
 
                 <nav aria-label="Page navigation example">
@@ -133,4 +52,26 @@
 
 </div>
 <!-- /.container-fluid -->
+
+<script>
+    $(document).ready(function(){
+
+            var myrecords = {{ myrecords|tojson }};
+            console.log(myrecords);
+            $("#myrecord").empty();
+            let str = "";
+            for(const record of myrecords){
+                str += "<tr>";
+                str += "<td>" + record[2] + "</td>";
+                str += "<td>" + record[0] + "</td>";
+                str += "<td>" + record[1] + "</td>";
+                str += "<td>" + record[3] + "</td>";
+                str += "<td>" + record[4] + "</td>";
+                str += "<td>" + record[5] + "</td>";
+                str += "</tr>";
+            }
+            $("#myrecord").append(str);
+    });
+
+</script>
 {% endblock %}

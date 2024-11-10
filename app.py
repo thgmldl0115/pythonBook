@@ -69,8 +69,33 @@ def index():
 def main():
     if 'user' in session:
         userNm = session['user']['userNm']
-        return render_template('main.html', userNm=userNm)
+        sql = """
+            SELECT b_title, b_author, b_isbn
+            FROM tb_book
+            WHERE user_id = (:1)
+            AND b_end_yn = 'N'
+        """
+        mylists = db.fetch_all(sql, [session['user']['userId']])
+        print(mylists)
+        return render_template('main.html', userNm=userNm, mylists=mylists)
     return redirect("/login")
+
+@app.route("/addBookRecord", methods=['POST'])
+def addBookRecord():
+    userId = session['user']['userId']
+    readDate = request.form['readDate']
+    isbn = request.form['mybook']
+    page = request.form['today-page']
+
+    sql = """
+        INSERT INTO tb_bookrecord(user_id, b_isbn, r_date, r_page)
+        VALUES(:id, :isbn, TO_DATE(:readDate, 'YYYY-MM-DD'), :page)
+    """
+    db.execute_query(sql,
+             {"id":userId, "isbn":isbn, "readDate":readDate, "page":page})
+
+    return redirect(url_for('main'))
+
 
 # 읽을 책 목록
 @app.route("/goals")
@@ -149,7 +174,32 @@ def addBookList():
 def list():
     if 'user' in session:
         userNm = session['user']['userNm']
-        return render_template('index-list.html', userNm=userNm)
+        sql = """
+            SELECT distinct b.b_title, b.b_author, b.b_page
+                 , TO_CHAR(b.b_create_dt, 'YYYY-MM-DD') as b_create_dt
+                 , TO_CHAR(b.b_update_dt, 'YYYY-MM-DD') as b_update_dt
+                 , CASE WHEN b.b_category = '000' THEN '총류, 컴퓨터과학'
+                         WHEN b.b_category = '100' THEN '철학, 심리학, 윤리학'
+                         WHEN b.b_category = '200' THEN '종교'
+                         WHEN b.b_category = '300' THEN '사회과학'
+                         WHEN b.b_category = '400' THEN '어학'
+                         WHEN b.b_category = '500' THEN '순수과학'
+                         WHEN b.b_category = '600' THEN '기술과학'
+                         WHEN b.b_category = '700' THEN '예술'
+                         WHEN b.b_category = '800' THEN '문학'
+                         WHEN b.b_category = '900' THEN '역사'
+                         ELSE '기타'
+                    END as b_category
+                 , b.b_memo
+            FROM tb_bookrecord a, tb_book b, tb_user c
+            WHERE a.b_isbn = b.b_isbn
+            AND a.user_id = c.user_id
+            AND b.b_end_yn = 'Y'
+            AND c.user_id=(:1)
+        """
+        mybooks = db.fetch_all(sql, [session['user']['userId']])
+        print(mybooks)
+        return render_template('index-list.html', userNm=userNm, mybooks=mybooks)
     return redirect("/login")
 
 # 상세 기록
@@ -157,7 +207,22 @@ def list():
 def tables():
     if 'user' in session:
         userNm = session['user']['userNm']
-        return render_template('index-tables.html', userNm=userNm)
+        sql = """
+            SELECT b.b_title, b.b_author
+                 , TO_CHAR(a.r_date, 'YYYY-MM-DD') as r_date
+                 , a.r_page
+                 , SUM(a.r_page) OVER(PARTITION BY a.b_isbn
+                                        ORDER BY a.r_date
+                                        ROWS BETWEEN UNBOUNDED PRECEDING 
+                                                AND CURRENT ROW) as sum_page
+                 , b.b_page
+            FROM tb_bookrecord a, tb_book b
+            WHERE a.b_isbn = b.b_isbn
+            AND a.user_id = (:1)
+        """
+        myrecords = db.fetch_all(sql, [session['user']['userId']])
+        print(myrecords)
+        return render_template('index-tables.html', userNm=userNm, myrecords=myrecords)
     return redirect("/login")
 
 # 마이페이지
