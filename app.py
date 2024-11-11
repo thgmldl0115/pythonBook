@@ -51,9 +51,10 @@ def loginDo():
         user = {'userId': userId, 'userNm':userNm, 'userEmail':userEmail}
         print(user)
         session['user'] = user
-        return render_template('main.html')
+        return redirect(url_for('main'))
     else:
-        return render_template('index-login.html')
+        return redirect(url_for('login'))
+
 # 로그아웃
 @app.route('/logout')
 def logout():
@@ -69,14 +70,23 @@ def index():
 def main():
     if 'user' in session:
         userNm = session['user']['userNm']
+        userId = session['user']['userId']
+        print("==^^==")
         sql = """
-            SELECT b_title, b_author, b_isbn
-            FROM tb_book
-            WHERE user_id = (:1)
-            AND b_end_yn = 'N'
+            SELECT distinct a.b_title, a.b_author, a.b_isbn, 
+                 NVL(SUM(b.r_page) OVER(PARTITION BY b.b_isbn), 0) as cur_page,
+                 a.b_page,
+                (a.b_page - NVL(SUM(b.r_page) OVER(PARTITION BY b.b_isbn), 0)) as to_page,
+                 a.b_create_dt
+            FROM tb_book a, tb_bookrecord b
+            WHERE a.b_isbn = b.b_isbn(+)
+            AND a.user_id = (:id)
+            AND a.b_end_yn = 'N'
+            ORDER BY a.b_create_dt
         """
-        mylists = db.fetch_all(sql, [session['user']['userId']])
+        mylists = db.fetch_all(sql, {"id":userId})
         print(mylists)
+
         return render_template('main.html', userNm=userNm, mylists=mylists)
     return redirect("/login")
 
@@ -94,6 +104,31 @@ def addBookRecord():
     db.execute_query(sql,
              {"id":userId, "isbn":isbn, "readDate":readDate, "page":page})
 
+    sql2 = """
+                UPDATE tb_book a
+                SET (a.b_create_dt, a.b_update_dt) = (
+                                                        SELECT distinct MIN(r_date) OVER(PARTITION BY b_isbn)
+                                                              ,MAX(r_date) OVER(PARTITION BY b_isbn)
+                                                        FROM tb_bookrecord b
+                                                        WHERE b.b_isbn(+) = a.b_isbn
+                                                        AND  b.r_date IS NOT NULL
+                                                        )
+                WHERE a.user_id=(:id)
+            """
+    db.execute_query(sql2, {"id":userId})
+
+    sql3 = """
+            UPDATE tb_book a
+            SET a.b_end_yn = 'Y'
+            WHERE (a.b_isbn, a.b_page) IN (
+                                            SELECT b.b_isbn, SUM(b.r_page) OVER(PARTITION BY b.b_isbn)
+                                            FROM tb_bookrecord b
+                                            WHERE b.b_isbn = a.b_isbn
+                                            )
+            AND a.user_id=(:id)
+    """
+    db.execute_query(sql3, {"id": userId})
+
     return redirect(url_for('main'))
 
 
@@ -103,7 +138,11 @@ def goals():
     if 'user' in session:
         userNm = session['user']['userNm']
         sql = """
-            SELECT b_end_yn, b_title, b_author, 
+            SELECT  distinct
+                    CASE WHEN b_create_dt IS NULL THEN 'N'
+                         ELSE 'Y'
+                    END as read_yn
+                    , b_title, b_author,  
                     CASE WHEN b_category = '000' THEN '총류, 컴퓨터과학'
                          WHEN b_category = '100' THEN '철학, 심리학, 윤리학'
                          WHEN b_category = '200' THEN '종교'
@@ -116,14 +155,16 @@ def goals():
                          WHEN b_category = '900' THEN '역사'
                          ELSE '기타'
                     END as b_category, 
-                    b_memo,
-                    b_page, b_dicount, 
+                    NVL(b_memo, ' '),
+                    b_page, 
+                    NVL(SUM(b.r_page) OVER(PARTITION BY b.b_isbn), 0) as cur_page, 
                     NVL(TO_CHAR(b_create_dt, 'YYYY-MM-DD'),' ') as b_create_dt, 
-                    NVL(TO_CHAR(b_update_dt, 'YYYY-MM-DD'),' ') as b_update_dt,
-                    b_end_yn
-            FROM tb_book
-            WHERE user_id=(:1) 
+                    NVL(TO_CHAR(b_update_dt, 'YYYY-MM-DD'),' ') as b_update_dt
+            FROM tb_book a, tb_bookrecord b
+            WHERE a.b_isbn = b.b_isbn(+)
+            AND a.user_id= (:1)
             AND b_end_yn = 'N'
+            ORDER BY b_create_dt
         """
         mybooks = db.fetch_all(sql, [session['user']['userId']])
         print(mybooks)
@@ -190,12 +231,13 @@ def list():
                          WHEN b.b_category = '900' THEN '역사'
                          ELSE '기타'
                     END as b_category
-                 , b.b_memo
+                 , NVL(b.b_memo, ' ')
             FROM tb_bookrecord a, tb_book b, tb_user c
             WHERE a.b_isbn = b.b_isbn
             AND a.user_id = c.user_id
             AND b.b_end_yn = 'Y'
             AND c.user_id=(:1)
+            ORDER BY b_create_dt
         """
         mybooks = db.fetch_all(sql, [session['user']['userId']])
         print(mybooks)
@@ -219,6 +261,7 @@ def tables():
             FROM tb_bookrecord a, tb_book b
             WHERE a.b_isbn = b.b_isbn
             AND a.user_id = (:1)
+            ORDER BY b.b_create_dt, a.r_date
         """
         myrecords = db.fetch_all(sql, [session['user']['userId']])
         print(myrecords)
