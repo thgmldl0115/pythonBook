@@ -1,21 +1,27 @@
 {% extends 'top-footer.html' %}
 {% block content %}
 
-<!-- Begin Page Content -->
 <div class="container-fluid">
 
-    <!-- Page Heading -->
     <h1 class="h3 mb-2 text-gray-800">Book Record</h1>
     <p class="mb-4">올해 {{ userNm }}님이 남긴 독서 기록을 확인해보세요! </p>
 
-    <!-- DataTales Example -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">독서 기록</h6>
         </div>
         <div class="card-body">
+            <h6 style="float:right;" id="totalrow"></h6>
             <div class="table-responsive">
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                      <colgroup>
+                        <col style="width: 15%;">
+                        <col style="width: 35%;">
+                        <col style="width: 15%;">
+                        <col style="width: 10%;">
+                        <col style="width: 10%;">
+                        <col style="width: 10%;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>읽은 날짜</th>
@@ -30,22 +36,9 @@
                 </table>
 
                 <nav aria-label="Page navigation example">
-                  <ul class="pagination justify-content-center">
-                    <li class="page-item">
-                      <a class="page-link" href="#" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                      </a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                      <a class="page-link" href="#" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                      </a>
-                    </li>
-                  </ul>
+                    <ul class="pagination justify-content-center" id="pagination"></ul>
                 </nav>
+
             </div>
         </div>
     </div>
@@ -55,12 +48,25 @@
 
 <script>
     $(document).ready(function(){
+        // Load total record count and update the text
+        var totalrow = {{ totalrow|tojson }}[0];
+        $("#totalrow").text("총 " + totalrow + "건");
 
-            var myrecords = {{ myrecords|tojson }};
-            console.log(myrecords);
+        const recordsPerPage = 10;
+        const endPage = Math.ceil(totalrow / recordsPerPage);
+        const myrecords = {{ myrecords|tojson }};
+        let currentPage = 1;
+
+        // 페이지 해당 하는 로우 출력
+        function renderPage(pageNumber) {
+            currentPage = pageNumber;
             $("#myrecord").empty();
+            let start = (pageNumber - 1) * recordsPerPage;
+            let end = start + recordsPerPage;
             let str = "";
-            for(const record of myrecords){
+
+            for (let i = start; i < end && i < myrecords.length; i++) {
+                const record = myrecords[i];
                 str += "<tr>";
                 str += "<td>" + record[2] + "</td>";
                 str += "<td>" + record[0] + "</td>";
@@ -71,7 +77,28 @@
                 str += "</tr>";
             }
             $("#myrecord").append(str);
-    });
 
+            // 현재 페이지 표시
+            $("#pagination .page-item").removeClass("active");
+            $("#pagination .page-item[data-page='" + pageNumber + "']").addClass("active");
+        }
+
+
+        // 페이지네이션 버튼을 설정
+        function setupPagination() {
+            $("#pagination").empty();
+            for (let i = 1; i <= endPage; i++) {
+                let pageItem = $('<li class="page-item" data-page="' + i + '"><a class="page-link" href="#">' + i + '</a></li>');
+                pageItem.click(function(event) {
+                    event.preventDefault();  // Prevents adding # to the URL
+                    renderPage(i);
+                });
+                $("#pagination").append(pageItem);
+            }
+        }
+        setupPagination();
+        renderPage(1);
+    });
 </script>
+
 {% endblock %}

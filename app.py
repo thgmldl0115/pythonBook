@@ -5,6 +5,7 @@ import pandas as pd
 import time
 from datetime import datetime
 import re
+import cx_Oracle
 
 from flask_cors import CORS
 
@@ -24,7 +25,6 @@ def register():
 
 @app.route("/registerDo", methods=['POST'])
 def registerDo():
-    print(request)
     userId = request.form['userId']
     userNm = request.form['userNm']
     userEmail = request.form['userEmail']
@@ -40,7 +40,6 @@ def login():
 
 @app.route("/loginDo", methods=['POST'])
 def loginDo():
-    print(request)
     userId = request.form['userId']
     userPw = request.form['userPw']
     sql1 = "SELECT user_pw FROM tb_user WHERE user_id = (:1)"
@@ -49,7 +48,6 @@ def loginDo():
         sql2 = "SELECT user_nm, user_email FROM tb_user WHERE user_id = (:1)"
         userNm, userEmail = db.fetch_one(sql2, [userId])
         user = {'userId': userId, 'userNm':userNm, 'userEmail':userEmail}
-        print(user)
         session['user'] = user
         return redirect(url_for('main'))
     else:
@@ -63,7 +61,7 @@ def logout():
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return redirect("/main")
 
 # 메인
 @app.route("/main")
@@ -82,13 +80,98 @@ def main():
             WHERE a.b_isbn = b.b_isbn(+)
             AND a.user_id = (:id)
             AND a.b_end_yn = 'N'
-            ORDER BY a.b_create_dt
+            ORDER BY a.b_create_dt DESC
         """
         mylists = db.fetch_all(sql, {"id":userId})
-        print(mylists)
 
-        return render_template('main.html', userNm=userNm, mylists=mylists)
+        sql2 = """
+            SELECT sum(b_dicount) as yrmoney
+            FROM tb_book
+            WHERE user_id=(:id)
+        """
+        yrmoney = db.fetch_one(sql2, {"id":userId})
+
+        sql3 = """  
+            SELECT sum(b.r_page) as yrpage
+                  ,count(distinct a.b_isbn) as yrbook
+                  ,count(distinct r_date) as yrdt
+            FROM tb_book a, tb_bookrecord b
+            WHERE a.b_isbn = b.b_isbn(+) 
+            AND a.user_id = b.user_id(+)
+            AND b.b_isbn IS NOT NULL
+            AND b.user_id=(:id)
+        """
+        yrs = db.fetch_one(sql3, {"id":userId})
+
+        sql4 = """
+            SELECT TO_CHAR(b_update_dt, 'YYYYMMDD') as lastday
+                 , b_title as lastbook
+            FROM tb_book
+            WHERE b_update_dt = (
+            SELECT MAX(b_update_dt)
+            FROM tb_book
+            WHERE user_id=(:id) )
+        """
+        lasts = db.fetch_one(sql4, {"id":userId})
+
+        mday, mpage = graph_data_line()
+
+        piedata = graph_data_pie()
+        return render_template('main.html', userNm=userNm
+                               , mylists=mylists, yrmoney=yrmoney, yrs=yrs, lasts=lasts
+                               , mday=mday, mpage=mpage, piedata=piedata)
     return redirect("/login")
+
+def graph_data_line():
+    sql = """
+        SELECT SUBSTR(dt, 5,2) || '월' as mon
+              ,SUM(page) OVER(ORDER BY dt
+                                ROWS BETWEEN UNBOUNDED PRECEDING 
+                                            AND CURRENT ROW) as page
+        FROM(
+        SELECT TO_CHAR(r_date, 'YYYYMM') as dt
+              ,SUM(r_page)  as page
+        FROM tb_bookrecord
+        WHERE user_id = (:id)
+        GROUP BY TO_CHAR(r_date, 'YYYYMM')
+        ORDER BY dt)
+    """
+    df1 = db.fetch_all(sql,{"id":session['user']['userId']})
+    mday = []
+    mpage = []
+    for i in range(len(df1)):
+        mday.append(df1[i][0])
+        mpage.append(df1[i][1])
+    page_main = [
+        {
+            'name' : 'page',
+            'data' : mpage,
+        }
+    ]
+    return mday, page_main
+
+def graph_data_pie():
+    sql = """
+        SELECT CASE b_category WHEN '000' THEN '총류, 컴퓨터과학'
+                             WHEN '100' THEN '철학, 심리학, 윤리학'
+                             WHEN '200' THEN '종교'
+                             WHEN '300' THEN '사회과학'
+                             WHEN '400' THEN '어학'
+                             WHEN '500' THEN '순수과학'
+                             WHEN '600' THEN '기술과학'
+                             WHEN '700' THEN '예술'
+                             WHEN '800' THEN '문학'
+                             WHEN '900' THEN '역사'
+                             ELSE '기타'
+                             END as b_category
+              ,COUNT(b_category) as cnt
+        FROM tb_book
+        WHERE user_id = (:id)
+        GROUP BY b_category
+    """
+    df1 = db.fetch_all(sql,{"id":session['user']['userId']})
+
+    return df1
 
 @app.route("/addBookRecord", methods=['POST'])
 def addBookRecord():
@@ -164,10 +247,10 @@ def goals():
             WHERE a.b_isbn = b.b_isbn(+)
             AND a.user_id= (:1)
             AND b_end_yn = 'N'
-            ORDER BY b_create_dt
+            ORDER BY b_create_dt DESC
         """
         mybooks = db.fetch_all(sql, [session['user']['userId']])
-        print(mybooks)
+
         return render_template('index-goals.html', userNm=userNm, mybooks=mybooks)
     return redirect("/login")
 
@@ -237,10 +320,10 @@ def list():
             AND a.user_id = c.user_id
             AND b.b_end_yn = 'Y'
             AND c.user_id=(:1)
-            ORDER BY b_create_dt
+            ORDER BY b_create_dt DESC
         """
         mybooks = db.fetch_all(sql, [session['user']['userId']])
-        print(mybooks)
+
         return render_template('index-list.html', userNm=userNm, mybooks=mybooks)
     return redirect("/login")
 
@@ -261,11 +344,18 @@ def tables():
             FROM tb_bookrecord a, tb_book b
             WHERE a.b_isbn = b.b_isbn
             AND a.user_id = (:1)
-            ORDER BY b.b_create_dt, a.r_date
+            ORDER BY b.b_create_dt DESC, a.r_date DESC
         """
         myrecords = db.fetch_all(sql, [session['user']['userId']])
-        print(myrecords)
-        return render_template('index-tables.html', userNm=userNm, myrecords=myrecords)
+
+        sql2 = """
+            SELECT count(*)
+            FROM tb_bookrecord
+            WHERE user_id = (:1)
+        """
+        totalrow = db.fetch_one(sql2, [session['user']['userId']])
+
+        return render_template('index-tables.html', userNm=userNm, myrecords=myrecords, totalrow=totalrow)
     return redirect("/login")
 
 # 마이페이지
