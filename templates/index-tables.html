@@ -13,7 +13,7 @@
         <div class="card-body">
             <h6 style="float:right;" id="totalrow"></h6>
             <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="margin-bottom:0.1rem;">
                       <colgroup>
                         <col style="width: 15%;">
                         <col style="width: 35%;">
@@ -34,7 +34,7 @@
                     </thead>
                     <tbody id="myrecord"></tbody>
                 </table>
-
+                <label class="form-label" style="font-size:0.8rem; margin-top:0; margin-bottom:1rem;">기록을 삭제하려면 삭제하고 싶은 기록을 클릭해주세요.</label>
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-center" id="pagination"></ul>
                 </nav>
@@ -43,8 +43,31 @@
         </div>
     </div>
 
+    <!-- Modal-->
+    <div class="modal" id="delModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">기록을 삭제 하시겠습니까?</h5>
+                </div>
+                <div class="modal-body">삭제를 원하지 않으시면 '닫기'를 눌러주세요</div>
+                <div class="modal-footer">
+                    <button id="test" class="btn btn-secondary" type="button" data-dismiss="modal">닫기</button>
+                    <form action="/recordDelDo" method="post">
+                        <input type="hidden" name="isbn" id="isbn">
+                        <input type="hidden" name="rday" id="rday">
+                        <button class="btn btn-primary" type="submit" id="delBtn">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 </div>
 <!-- /.container-fluid -->
+
 
 <script>
     $(document).ready(function(){
@@ -67,8 +90,9 @@
 
             for (let i = start; i < end && i < myrecords.length; i++) {
                 const record = myrecords[i];
-                str += "<tr>";
-                str += "<td>" + record[2] + "</td>";
+
+                str += "<tr id='"+ record[6] +"'>";
+                str += "<td id='"+ record[2] +"'>" + record[2] + "</td>";
                 str += "<td>" + record[0] + "</td>";
                 str += "<td>" + record[1] + "</td>";
                 str += "<td>" + record[3] + "</td>";
@@ -98,7 +122,33 @@
         }
         setupPagination();
         renderPage(1);
+
+        $("tr:not(:first)").mouseover(function(){
+            $(this).addClass("hover");
+        });
+        $("tr").mouseout(function(){
+            $(this).removeClass("hover");
+        });
+
+        $("tr:not(:first)").on("click", function(){
+            $("#delModal").show();
+            var id = $(this).attr("id");
+            $("#isbn").val(id);
+            var td1 = $(this).children("td:eq(0)");
+            var rday = td1.attr("id");
+            $("#rday").val(rday);
+        });
+        $("#test").click(function(){
+            $("#delModal").hide();
+        });
+
     });
 </script>
+
+<style>
+
+    .hover { background: rgb(162, 172, 154, 0.2); }
+
+</style>
 
 {% endblock %}

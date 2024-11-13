@@ -39,6 +39,23 @@
         </div>
     </div>
 
+    <!-- Modal-->
+    <div class="modal" id="detailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">상세 독서 기록</h5>
+                </div>
+                <div class="modal-body" id="detail">
+
+                </div>
+                <div class="modal-footer">
+                    <button id="test" class="btn btn-secondary" type="button" data-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 <!-- /.container-fluid -->
 
@@ -63,7 +80,7 @@
 
             for (let i = start; i < end && i < mybooks.length; i++) {
                 const book = mybooks[i];
-                str += "<tr>";
+                str += "<tr id='" + book[7] +"'>";
                 str += "<td>" + book[0] + "</td>";
                 str += "<td>" + book[1] + "</td>";
                 str += "<td>" + book[2] + "</td>";
@@ -94,7 +111,50 @@
         }
         setupPagination();
         renderPage(1);
+
+        $("tr:not(:first)").mouseover(function(){
+            $(this).addClass("hover");
+        });
+        $("tr").mouseout(function(){
+            $(this).removeClass("hover");
+        });
+
+        $("tr:not(:first)").on("click", function(){
+
+            var id = $(this).attr("id");
+            $("#isbn").val(id);
+            fn_detail(id);
+            $("#detailModal").show();
+        });
+        $("#test").click(function(){
+            $("#detailModal").hide();
+        });
+
     });
 
+    function fn_detail(isbn){
+        let url = "http://127.0.0.1:5000/showdetail";
+        $.ajax({
+             url : url
+            ,type : 'POST'
+            ,data :  JSON.stringify({isbn:isbn})
+            ,dataType : 'json'
+            ,success : function(res){
+                console.log(res);
+
+            },error(e){
+                console.log(e);
+            }
+        })
+
+    }
+
 </script>
+
+<style>
+
+    .hover { background: rgb(162, 172, 154, 0.2); }
+
+</style>
+
 {% endblock %}

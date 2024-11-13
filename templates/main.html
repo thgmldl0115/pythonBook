@@ -218,7 +218,6 @@
 
 
 
-
 </div>
 
 <!-- /.container-fluid -->
@@ -230,7 +229,11 @@
             $("#yrmoney").text(yrmoney+'원');
 
             var yrs = {{ yrs|tojson }};
-            var yrpage = yrs[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if(yrs[0] != null){
+                var yrpage = yrs[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }else{
+                var yrpage = '0';
+            }
             var yrbook = yrs[1];
             var yrdt = yrs[2];
             $("#yrpage").text(yrpage+'쪽');
@@ -238,8 +241,13 @@
             $("#yrdt").text(yrdt+'일');
 
             var lasts = {{ lasts|tojson }};
-            var lastday = lasts[0];
-            var lastbook = lasts[1];
+            if(lasts != null){
+                var lastday = lasts[0];
+                var lastbook = lasts[1];
+            }else{
+                var lastday = '00000000';
+                var lastbook = '없음';
+            }
             $("#lastday").text(lastday.substr(0,4)+'년 '+lastday.substr(4,2)+'월 '+lastday.substr(6,2)+'일');
             $("#lastbook").text(lastbook);
 

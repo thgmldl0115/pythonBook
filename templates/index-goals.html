@@ -32,7 +32,7 @@
                     <tbody id="mylist">
                     </tbody>
                 </table>
-
+                <label class="form-label" style="font-size:0.8rem; margin:0;">목표 도서를 삭제하려면 도서를 클릭해주세요.</label>
             </div>
         </div>
     </div>
@@ -63,8 +63,8 @@
 
                 <hr style="margin-top:.5rem;">
 
-                <div class="mb-3">
-                    <div class="row" style="margin-top:.5rem; margin-bottom:.5rem;">
+                <div class="mb-3" >
+                    <div class="row" style="margin-top:1rem; margin-bottom:1rem;">
                         <div class="col-2 text-center">
                             <label for="title" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
                                 <strong>책 제목</strong></label>
@@ -73,7 +73,7 @@
                             <input type="text" class="form-control form-control-user" id="title" name="title">
                         </div>
                     </div>
-                    <div class="row" style="margin-bottom:.5rem;">
+                    <div class="row" style="margin-bottom:1rem;">
                         <div class="col-2 text-center">
                             <label for="author" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
                                 <strong>저자명</strong></label>
@@ -82,7 +82,7 @@
                             <input type="text" class="form-control form-control-user" id="author" name="author">
                         </div>
                     </div>
-                    <div class="row" style="margin-bottom:.5rem;">
+                    <div class="row" style="margin-bottom:1rem;">
                         <div class="col-2 text-center">
                             <label for="discount" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
                                 <strong>가격(원)</strong></label>
@@ -98,7 +98,7 @@
                             <input type="number" class="form-control form-control-user" id="page" name="page">
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row" style="margin-bottom:2rem;">
                         <div class="col-2 text-center">
                             <label for="category" style="font-size:0.9rem; padding-left:1rem; margin-top:.5rem;">
                                 <strong>카테고리</strong></label>
@@ -127,14 +127,69 @@
                             <input type="text" class="form-control form-control-user" id="memo" name="memo">
                         </div>
                     </div>
-                    &nbsp;
+                    <button type="button" class="btn btn-outline-primary btn-user btn-block"
+                            style="width:50%; border-radius: 20px; margin:auto;" id="postml">
+                        <i class="fas fa-magic fa-sm text-white-50"></i> &nbsp;예상 기간 확인하기
+                    </button>
+                    <hr>
+                    <div class="row" style="margin-bottom:1rem;">
+                        <div class="col-4 text-center">
+                            <label for="ml_days" style="font-size:0.9rem; margin-top:.5rem;">
+                                <strong>예상 독서 일수</strong></label>
+                        </div>
+                        <div class="col-6">
+                            <input type="text" class="form-control form-control-user" id="ml_days" name="ml_days" readonly>
+                        </div>
+                        <div class="col-2">
+                            <p style="font-size:0.9rem; margin-top:.5rem;">일</p>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom:1rem;">
+                        <div class="col-4 text-center">
+                            <label for="ml_page" style="font-size:0.9rem; margin-top:.5rem;">
+                                <strong>예상 회당 평균 독서 페이지</strong></label>
+                        </div>
+                        <div class="col-6">
+                            <input type="text" class="form-control form-control-user" id="ml_page" name="ml_page" readonly>
+                        </div>
+                        <div class="col-2">
+                            <p style="font-size:0.9rem; margin-top:.5rem;">쪽</p>
+                        </div>
+                    </div>
+                    <hr style="margin-bottom:0.5rem;">
+                    <label class="form-label" style="font-size:0.8rem; margin:0;">
+                        기존 데이터 기반으로 예상 독서 일수와 페이지를 계산합니다. </label>
                 </div>
                 <input type="hidden" name="isbn" id="isbn">
+                <input type="hidden" name="bimage" id="bimage">
                 <button type="submit" class="btn btn-primary btn-user btn-block">
                     <i class="fas fa-plus fa-sm text-white-50"></i> &nbsp;목표 도서 추가하기
                 </button>
             </form>
 
+        </div>
+    </div>
+
+    <!-- Modal-->
+    <div class="modal" id="delgModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">목표 도서를 삭제 하시겠습니까?</h5>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label" style=" margin:0; color:#9B111E;">
+                    읽기 시작한 책을 삭제하는 경우,
+                        해당 책을 읽은 기록까지 <strong>전부 삭제</strong>됩니다.</label>
+                    삭제를 원하지 않으시면 '닫기'를 눌러주세요</div>
+                <div class="modal-footer">
+                    <button id="test" class="btn btn-secondary" type="button" data-dismiss="modal">닫기</button>
+                    <form action="/goalDelDo" method="post">
+                        <input type="hidden" name="gisbn" id="gisbn">
+                        <button class="btn btn-primary" type="submit" id="delBtn">삭제</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -144,11 +199,10 @@
     $(document).ready(function(){
 
             var mybooks = {{ mybooks|tojson }};
-            console.log(mybooks);
             $("#mylist").empty();
             let str = "";
             for(const book of mybooks){
-                str += "<tr>";
+                str += "<tr id='" + book[9] + "'>";
                 str += "<td>" + book[0] + "</td>";
                 str += "<td>" + book[1] + "</td>";
                 str += "<td>" + book[2] + "</td>";
@@ -167,8 +221,27 @@
             });
 
             $("#search-list").change(function(){
-                console.log("^^");
                 fn_bookPrint();
+            });
+
+            $("tr:not(:first)").mouseover(function(){
+                $(this).addClass("hover");
+            });
+            $("tr").mouseout(function(){
+                $(this).removeClass("hover");
+            });
+
+            $("tr:not(:first)").on("click", function(){
+                $("#delgModal").show();
+                var id = $(this).attr("id");
+                $("#gisbn").val(id);
+            });
+            $("#test").click(function(){
+                $("#delgModal").hide();
+            });
+
+            $("#postml").click(function(){
+                fn_ml();
             });
 
     });
@@ -182,7 +255,6 @@
             ,dataType : 'json'
             ,success : function(res){
 
-                console.log(res)
                 $("#search-list").empty();
                 let str = "";
                 for(const book of res){
@@ -198,6 +270,7 @@
                     str += '</label>';
                 }
                 $("#search-list").append(str);
+
 
             },error(e){
                 console.log(e);
@@ -218,7 +291,30 @@
                     $("#title").val(book['title']);
                     $("#author").val(book['author'].replaceAll('^', ', '));
                     $("#discount").val(book['discount']);
+                    $("#bimage").val(book['image']);
+
                 }
+
+            },error(e){
+                console.log(e);
+            }
+        })
+    }
+    function fn_ml(){
+        let url = "http://127.0.0.1:5000/ml";
+        let b_category = $("#category").val();
+        let b_page = $("#page").val()
+        $.ajax({
+             url : url
+            ,type : 'POST'
+            ,data :  JSON.stringify({category:b_category, page:b_page})
+            ,dataType : 'json'
+            ,success : function(res){
+
+                let ml_days = Math.round(res['predicted_total_days'] * 100 ) / 100;
+                let ml_page = Math.round(res['average_pages_per_session'] * 100 ) / 100;
+                $("#ml_days").val(ml_days);
+                $("#ml_page").val(ml_page);
 
             },error(e){
                 console.log(e);
@@ -228,5 +324,12 @@
 
 
 </script>
+
+<style>
+
+    .hover { background: rgb(162, 172, 154, 0.2); }
+
+</style>
+
 
 {% endblock %}

@@ -1,7 +1,10 @@
+from crypt import methods
+
 from flask import Flask, render_template, request, send_file, redirect, session, url_for
 import requests
 import json
 import pandas as pd
+import numpy as np
 import time
 from datetime import datetime
 import re
@@ -78,6 +81,7 @@ def main():
                  a.b_create_dt
             FROM tb_book a, tb_bookrecord b
             WHERE a.b_isbn = b.b_isbn(+)
+            AND a.user_id = b.user_id(+)
             AND a.user_id = (:id)
             AND a.b_end_yn = 'N'
             ORDER BY a.b_create_dt DESC
@@ -108,9 +112,9 @@ def main():
                  , b_title as lastbook
             FROM tb_book
             WHERE b_update_dt = (
-            SELECT MAX(b_update_dt)
-            FROM tb_book
-            WHERE user_id=(:id) )
+                                    SELECT MAX(b_update_dt)
+                                    FROM tb_book
+                                    WHERE user_id=(:id) )
         """
         lasts = db.fetch_one(sql4, {"id":userId})
 
@@ -167,6 +171,7 @@ def graph_data_pie():
               ,COUNT(b_category) as cnt
         FROM tb_book
         WHERE user_id = (:id)
+        AND b_end_yn = 'Y'
         GROUP BY b_category
     """
     df1 = db.fetch_all(sql,{"id":session['user']['userId']})
@@ -194,6 +199,7 @@ def addBookRecord():
                                                               ,MAX(r_date) OVER(PARTITION BY b_isbn)
                                                         FROM tb_bookrecord b
                                                         WHERE b.b_isbn(+) = a.b_isbn
+                                                        AND a.user_id = b.user_id(+)
                                                         AND  b.r_date IS NOT NULL
                                                         )
                 WHERE a.user_id=(:id)
@@ -207,6 +213,7 @@ def addBookRecord():
                                             SELECT b.b_isbn, SUM(b.r_page) OVER(PARTITION BY b.b_isbn)
                                             FROM tb_bookrecord b
                                             WHERE b.b_isbn = a.b_isbn
+                                            AND a.user_id = b.user_id
                                             )
             AND a.user_id=(:id)
     """
@@ -242,9 +249,11 @@ def goals():
                     b_page, 
                     NVL(SUM(b.r_page) OVER(PARTITION BY b.b_isbn), 0) as cur_page, 
                     NVL(TO_CHAR(b_create_dt, 'YYYY-MM-DD'),' ') as b_create_dt, 
-                    NVL(TO_CHAR(b_update_dt, 'YYYY-MM-DD'),' ') as b_update_dt
+                    NVL(TO_CHAR(b_update_dt, 'YYYY-MM-DD'),' ') as b_update_dt,
+                    a.b_isbn
             FROM tb_book a, tb_bookrecord b
             WHERE a.b_isbn = b.b_isbn(+)
+            AND a.user_id = b.user_id(+)
             AND a.user_id= (:1)
             AND b_end_yn = 'N'
             ORDER BY b_create_dt DESC
@@ -253,6 +262,18 @@ def goals():
 
         return render_template('index-goals.html', userNm=userNm, mybooks=mybooks)
     return redirect("/login")
+
+@app.route("/goalDelDo", methods=['POST'])
+def goalDelDo():
+    id = [session['user']['userId']][0]
+    isbn = request.form['gisbn']
+    sql="""
+        DELETE tb_book
+        WHERE user_id=(:id)
+        AND b_isbn=(:isbn)
+    """
+    db.execute_query(sql, {"id":id, "isbn":isbn})
+    return redirect('/goals')
 
 from searchBookAPI import get_naver
 @app.route("/findbook", methods=['POST'])
@@ -272,6 +293,47 @@ def findDetail():
 
     return bookdetail
 
+import joblib
+@app.route("/ml",methods=['POST'])
+def ml():
+    # 1. 저장된 모델과 라벨 인코더 로드
+    model = joblib.load('linear_model.pkl')
+    label_encoder = joblib.load('label_encoder.pkl')
+    # 2. 새로운 책에 대한 예측
+    data = json.loads(request.get_data())
+    new_category = data['category']
+    new_pages = int(data['page'])
+    print(new_category)
+    print(new_pages)
+    # 3. 새로운 데이터에 라벨 인코딩 적용
+    new_category_encoded = label_encoder.transform([new_category])[0]
+    # 4. 예측을 위한 DataFrame 생성
+    new_book = pd.DataFrame({
+        'B_CATEGORY_ENCODED': [new_category_encoded],
+        'B_PAGE': [new_pages]
+    })
+    # 5. 예측 수행
+    predicted_total_days = model.predict(new_book)[0]
+    # 6. 평균 독서 횟수와 평균 회당 페이지 수 계산
+    average_reading_sessions = predicted_total_days  # 일수를 독서 횟수로 가정
+    average_pages_per_session = new_pages / average_reading_sessions if average_reading_sessions > 0 else 0
+    # 7. 결과를 JSON 형식으로 출력
+    result = {
+        "predicted_total_days": round(predicted_total_days, 2),  # 예측 일수
+        "average_reading_sessions": round(average_reading_sessions, 2),  # 예상 독서 횟수
+        "average_pages_per_session": round(average_pages_per_session, 2)  # 회당 평균 읽을 페이지 수
+    }
+
+    for key, value in result.items():
+        if isinstance(value, np.float32):
+            result[key] = float(value)
+
+    json_result = json.dumps(result)
+
+    return json_result
+
+
+
 @app.route("/addBookList", methods=['POST'])
 def addBookList():
     userId = session['user']['userId']
@@ -282,14 +344,18 @@ def addBookList():
     page = request.form['page']
     category = request.form['category']
     memo = request.form['memo']
+    image = request.form['bimage']
+    ml_days = request.form['ml_days']
+    ml_page = request.form['ml_page']
     sql = """
         INSERT INTO tb_book(user_id, b_title, b_author, b_dicount
-                            ,b_isbn, b_page, b_category, b_memo)
-        VALUES (:id, :title, :author, :discount, :isbn, :page, :category, :memo)
+                            ,b_isbn, b_page, b_category, b_memo, b_image, b_mlday, b_mlpage)
+        VALUES (:id, :title, :author, :discount, :isbn, :page, :category, :memo, :image, NVL(:mlday, null), NVL(:mlpage,null))
     """
     db.execute_query(sql,
              {"id":userId, "title":title, "author":author, "discount":discount,
-                     "isbn":isbn, "page":page, "category":category, "memo":memo})
+                     "isbn":isbn, "page":page, "category":category, "memo":memo, "image":image
+                    , "mlday":ml_days, "mlpage":ml_page})
 
     return redirect(url_for('goals'))
 
@@ -315,8 +381,10 @@ def list():
                          ELSE '기타'
                     END as b_category
                  , NVL(b.b_memo, ' ')
+                 , b.b_isbn
             FROM tb_bookrecord a, tb_book b, tb_user c
             WHERE a.b_isbn = b.b_isbn
+            AND a.user_id = b.user_id
             AND a.user_id = c.user_id
             AND b.b_end_yn = 'Y'
             AND c.user_id=(:1)
@@ -326,6 +394,42 @@ def list():
 
         return render_template('index-list.html', userNm=userNm, mybooks=mybooks)
     return redirect("/login")
+
+@app.route("/showdetail", methods=['POST'])
+def showdetail():
+    data = json.loads(request.get_data())
+    isbn = get_naver(data['isbn'])
+    id = [session['user']['userId']]
+    sql = """
+        SELECT distinct b_title, b_author, b_dicount
+              ,CASE b_category WHEN '000' THEN '총류, 컴퓨터과학'
+                             WHEN '100' THEN '철학, 심리학, 윤리학'
+                             WHEN '200' THEN '종교'
+                             WHEN '300' THEN '사회과학'
+                             WHEN '400' THEN '어학'
+                             WHEN '500' THEN '순수과학'
+                             WHEN '600' THEN '기술과학'
+                             WHEN '700' THEN '예술'
+                             WHEN '800' THEN '문학'
+                             WHEN '900' THEN '역사'
+                             ELSE '기타'
+                             END as b_category
+              ,NVL(b_memo,' ') as b_memo
+              ,NVL(b_mlday, ' ') as b_mlday
+              ,NVL(b_mlpage, ' ') as b_mlpage
+              ,b_image
+              ,TO_CHAR(b_create_dt, 'YYYY-MM-DD') as b_create_dt
+              ,TO_CHAR(b_update_dt, 'YYYY-MM-DD') as b_create_dt
+              ,COUNT(r_date) OVER(PARTITION BY b.b_isbn) as rlday
+              ,ROUND(AVG(r_page) OVER(PARTITION BY b.b_isbn),2) as rlpage
+        FROM tb_book a, tb_bookrecord b
+        WHERE a.user_id=(:id)
+        AND a.b_isbn = (:isbn)
+        AND a.b_isbn = b.b_isbn
+        AND a.user_id = b.user_id
+    """
+    details = db.fetch_all(sql, {"id":id, "isbn":isbn})
+    return details
 
 # 상세 기록
 @app.route("/tables")
@@ -341,8 +445,10 @@ def tables():
                                         ROWS BETWEEN UNBOUNDED PRECEDING 
                                                 AND CURRENT ROW) as sum_page
                  , b.b_page
+                 , b.b_isbn
             FROM tb_bookrecord a, tb_book b
             WHERE a.b_isbn = b.b_isbn
+            AND a.user_id = b.user_id
             AND a.user_id = (:1)
             ORDER BY b.b_create_dt DESC, a.r_date DESC
         """
@@ -357,6 +463,36 @@ def tables():
 
         return render_template('index-tables.html', userNm=userNm, myrecords=myrecords, totalrow=totalrow)
     return redirect("/login")
+
+@app.route("/recordDelDo", methods=['POST'])
+def recordDelDo():
+    id = [session['user']['userId']][0]
+    isbn = request.form['isbn']
+    rday = request.form['rday']
+
+    sql = """
+            DELETE tb_bookrecord
+            WHERE b_isbn = (:isbn)
+            AND r_date = TO_DATE((:rday),'YYYY-MM-DD')
+            AND user_id = (:id)
+    """
+    db.execute_query(sql, {"isbn":isbn, "rday":rday, "id":id})
+
+    sql2 = """
+        UPDATE tb_book a
+        SET (a.b_create_dt, a.b_update_dt) = (
+                                                SELECT distinct MIN(r_date) OVER(PARTITION BY b.b_isbn)
+                                                      ,MAX(r_date) OVER(PARTITION BY b.b_isbn)
+                                                FROM tb_bookrecord b
+                                                WHERE b.b_isbn(+) = a.b_isbn
+                                                AND a.user_id = b.user_id(+)
+                                                AND  b.r_date IS NOT NULL
+                                                )
+        WHERE a.user_id=(:id)
+    """
+    db.execute_query(sql2, {"id": id})
+
+    return redirect('/tables')
 
 # 마이페이지
 @app.route("/mypage")
