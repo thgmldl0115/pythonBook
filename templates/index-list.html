@@ -141,7 +141,33 @@
             ,dataType : 'json'
             ,success : function(res){
                 console.log(res);
-
+                $("#detail").empty();
+                let str = "";
+                let book = res;
+                str += '<table>';
+                str += '<table style="text-align: center;">';
+                str += '<colgroup>';
+                str += '<col style="width: 25%;">';
+                str += '<col style="width: 25%;">';
+                str += '<col style="width: 25%;">';
+                str += '<col style="width: 25%;">';
+                str += '</colgroup>';
+                str += '<tr><td colspan="2" rowspan="4"><img src="' + book[7] + '"></td>';
+                str += '<td colspan="2"><strong>' + book[0] + '</strong></td></tr>';
+                str += '<tr><td colspan="2">' + book[1] + '</td></tr>';
+                str += '<tr><td colspan="2">' + book[2] + '원</td></tr>';
+                str += '<tr><td>' + book[3] + '</td>';
+                str += '<td>' + book[4] + '</td></tr>';
+                str += '<tr><td>읽기 시작한 날</td>';
+                str += '<td>'+ book[8] +'</td>';
+                str += '<td>다 읽은 날</td>';
+                str += '<td>'+ book[9] +'</td></tr>';
+                str += '<tr><td>예상 독서 일수</td>';
+                str += '<td>'+ book[5] + '</td>';
+                str += '<td>실제 독서 일수</td>';
+                str += '<td>'+ book[10] + '</td></tr>';
+                str += '</table>';
+                $("#detail").append(str);
             },error(e){
                 console.log(e);
             }

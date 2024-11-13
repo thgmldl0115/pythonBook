@@ -1,4 +1,3 @@
-from crypt import methods
 
 from flask import Flask, render_template, request, send_file, redirect, session, url_for
 import requests
@@ -419,7 +418,7 @@ def showdetail():
               ,NVL(b_mlpage, ' ') as b_mlpage
               ,b_image
               ,TO_CHAR(b_create_dt, 'YYYY-MM-DD') as b_create_dt
-              ,TO_CHAR(b_update_dt, 'YYYY-MM-DD') as b_create_dt
+              ,TO_CHAR(b_update_dt, 'YYYY-MM-DD') as b_update_dt
               ,COUNT(r_date) OVER(PARTITION BY b.b_isbn) as rlday
               ,ROUND(AVG(r_page) OVER(PARTITION BY b.b_isbn),2) as rlpage
         FROM tb_book a, tb_bookrecord b
@@ -428,7 +427,7 @@ def showdetail():
         AND a.b_isbn = b.b_isbn
         AND a.user_id = b.user_id
     """
-    details = db.fetch_all(sql, {"id":id, "isbn":isbn})
+    details = db.fetch_one(sql, {"id":id, "isbn":isbn})
     return details
 
 # 상세 기록
