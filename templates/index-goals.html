@@ -15,7 +15,7 @@
         </div>
         <div class="card-body" >
             <div class="table-responsive ">
-                <table class="table table-bordered text-center" id="dataTable" width="100%" cellspacing="0" style="margin-bottom:0.2rem;">
+                <table class="table table-bordered table-hover text-center" id="dataTable" width="100%" cellspacing="0" style="margin-bottom:0.2rem;">
                     <thead>
                         <tr>
                             <th width="7%">시작 여부</th>
@@ -226,12 +226,6 @@
                 fn_bookPrint();
             });
 
-            $("tr:not(:first)").mouseover(function(){
-                $(this).addClass("hover");
-            });
-            $("tr").mouseout(function(){
-                $(this).removeClass("hover");
-            });
 
             $("tr:not(:first)").on("click", function(){
                 $("#delgModal").show();
@@ -327,11 +321,6 @@
 
 </script>
 
-<style>
-
-    .hover { background: rgb(162, 172, 154, 0.2); }
-
-</style>
 
 
 {% endblock %}

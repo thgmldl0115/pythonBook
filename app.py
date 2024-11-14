@@ -83,7 +83,7 @@ def main():
             AND a.user_id = b.user_id(+)
             AND a.user_id = (:id)
             AND a.b_end_yn = 'N'
-            ORDER BY a.b_create_dt DESC
+            ORDER BY a.b_create_dt
         """
         mylists = db.fetch_all(sql, {"id":userId})
 
