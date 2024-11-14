@@ -2,12 +2,12 @@ import joblib
 import pandas as pd
 import json
 # 1. 저장된 모델과 라벨 인코더 로드
-model = joblib.load('linear_model.pkl')
-label_encoder = joblib.load('label_encoder.pkl')
+model = joblib.load('linear_model_1.pkl')
+label_encoder = joblib.load('label_encoder_1.pkl')
 # 2. 새로운 책에 대한 예측
 # 예: 카테고리 800, 페이지 수 350인 책에 대한 예측
 new_category = '800'
-new_pages = 164
+new_pages = 250
 # 3. 새로운 데이터에 라벨 인코딩 적용
 new_category_encoded = label_encoder.transform([new_category])[0]
 

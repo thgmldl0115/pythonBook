@@ -107,22 +107,25 @@ def main():
         yrs = db.fetch_one(sql3, {"id":userId})
 
         sql4 = """
-            SELECT TO_CHAR(b_update_dt, 'YYYYMMDD') as lastday
-                 , b_title as lastbook
-            FROM tb_book
+            SELECT TO_CHAR(a. b_update_dt, 'YYYYMMDD') as lastday
+                 , a.b_title as lastbook
+            FROM tb_book a
             WHERE b_update_dt = (
-                                    SELECT MAX(b_update_dt)
-                                    FROM tb_book
-                                    WHERE user_id=(:id) )
+                                    SELECT MAX(b.b_update_dt)
+                                    FROM tb_book b
+                                    WHERE b.user_id=(:id)
+                                    AND a.user_id = b.user_id)
         """
         lasts = db.fetch_one(sql4, {"id":userId})
 
         mday, mpage = graph_data_line()
 
         piedata = graph_data_pie()
+
+        page_title = userNm + '\'s BookBoard'
         return render_template('main.html', userNm=userNm
                                , mylists=mylists, yrmoney=yrmoney, yrs=yrs, lasts=lasts
-                               , mday=mday, mpage=mpage, piedata=piedata)
+                               , mday=mday, mpage=mpage, piedata=piedata, page_title=page_title)
     return redirect("/login")
 
 def graph_data_line():
@@ -258,8 +261,8 @@ def goals():
             ORDER BY b_create_dt DESC
         """
         mybooks = db.fetch_all(sql, [session['user']['userId']])
-
-        return render_template('index-goals.html', userNm=userNm, mybooks=mybooks)
+        page_title = 'Wish List'
+        return render_template('index-goals.html', userNm=userNm, mybooks=mybooks, page_title=page_title)
     return redirect("/login")
 
 @app.route("/goalDelDo", methods=['POST'])
@@ -390,15 +393,17 @@ def list():
             ORDER BY b_create_dt DESC
         """
         mybooks = db.fetch_all(sql, [session['user']['userId']])
-
-        return render_template('index-list.html', userNm=userNm, mybooks=mybooks)
+        page_title = 'Book List'
+        return render_template('index-list.html', userNm=userNm, mybooks=mybooks, page_title=page_title)
     return redirect("/login")
 
 @app.route("/showdetail", methods=['POST'])
 def showdetail():
     data = json.loads(request.get_data())
-    isbn = get_naver(data['isbn'])
-    id = [session['user']['userId']]
+    isbn = data['bookid']
+    id = session['user']['userId']
+    print(type(isbn))
+    print(isbn)
     sql = """
         SELECT distinct b_title, b_author, b_dicount
               ,CASE b_category WHEN '000' THEN '총류, 컴퓨터과학'
@@ -428,7 +433,8 @@ def showdetail():
         AND a.user_id = b.user_id
     """
     details = db.fetch_one(sql, {"id":id, "isbn":isbn})
-    return details
+    j_details = json.dumps(details)
+    return j_details
 
 # 상세 기록
 @app.route("/tables")
@@ -449,7 +455,7 @@ def tables():
             WHERE a.b_isbn = b.b_isbn
             AND a.user_id = b.user_id
             AND a.user_id = (:1)
-            ORDER BY b.b_create_dt DESC, a.r_date DESC
+            ORDER BY b.b_update_dt DESC, a.r_date DESC
         """
         myrecords = db.fetch_all(sql, [session['user']['userId']])
 
@@ -459,8 +465,8 @@ def tables():
             WHERE user_id = (:1)
         """
         totalrow = db.fetch_one(sql2, [session['user']['userId']])
-
-        return render_template('index-tables.html', userNm=userNm, myrecords=myrecords, totalrow=totalrow)
+        page_title = 'Book Record'
+        return render_template('index-tables.html', userNm=userNm, myrecords=myrecords, totalrow=totalrow, page_title=page_title)
     return redirect("/login")
 
 @app.route("/recordDelDo", methods=['POST'])
@@ -491,6 +497,19 @@ def recordDelDo():
     """
     db.execute_query(sql2, {"id": id})
 
+    sql3 = """
+                UPDATE tb_book a
+                SET a.b_end_yn = 'N'
+                WHERE (a.b_isbn, a.b_page) NOT IN (
+                                                SELECT b.b_isbn, SUM(b.r_page) OVER(PARTITION BY b.b_isbn)
+                                                FROM tb_bookrecord b
+                                                WHERE b.b_isbn = a.b_isbn
+                                                AND a.user_id = b.user_id
+                                                )
+                AND a.user_id=(:id)
+        """
+    db.execute_query(sql3, {"id": id})
+
     return redirect('/tables')
 
 # 마이페이지
@@ -502,8 +521,9 @@ def mypage():
         userId = user['userId']
         userNm = user['userNm']
         userEmail = user['userEmail']
+        page_title = 'My page'
         return render_template('index-mypage.html',
-                               userId=userId, userNm=userNm, userEmail=userEmail)
+                               userId=userId, userNm=userNm, userEmail=userEmail, page_title=page_title)
     else:
         return render_template('index-login.html')
 

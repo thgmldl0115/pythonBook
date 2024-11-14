@@ -3,7 +3,7 @@
 
 <div class="container-fluid">
 
-    <h1 class="h3 mb-2 text-gray-800">Book Record</h1>
+    <h1 class="h3 mb-2 text-gray-800"></h1>
     <p class="mb-4">올해 {{ userNm }}님이 남긴 독서 기록을 확인해보세요! </p>
 
     <div class="card shadow mb-4">
@@ -13,14 +13,14 @@
         <div class="card-body">
             <h6 style="float:right;" id="totalrow"></h6>
             <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="margin-bottom:0.1rem;">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0" style="margin-bottom:0.2rem; text-align: center;">
                       <colgroup>
                         <col style="width: 15%;">
                         <col style="width: 35%;">
-                        <col style="width: 15%;">
-                        <col style="width: 10%;">
-                        <col style="width: 10%;">
-                        <col style="width: 10%;">
+                        <col style="width: 26%;">
+                        <col style="width: 8%;">
+                        <col style="width: 8%;">
+                        <col style="width: 8%;">
                     </colgroup>
                     <thead>
                         <tr>
@@ -91,7 +91,7 @@
             for (let i = start; i < end && i < myrecords.length; i++) {
                 const record = myrecords[i];
 
-                str += "<tr id='"+ record[6] +"'>";
+                str += "<tr onclick='fn_check(this)' id='"+ record[6] +"'>";
                 str += "<td id='"+ record[2] +"'>" + record[2] + "</td>";
                 str += "<td>" + record[0] + "</td>";
                 str += "<td>" + record[1] + "</td>";
@@ -123,32 +123,22 @@
         setupPagination();
         renderPage(1);
 
-        $("tr:not(:first)").mouseover(function(){
-            $(this).addClass("hover");
-        });
-        $("tr").mouseout(function(){
-            $(this).removeClass("hover");
-        });
 
-        $("tr:not(:first)").on("click", function(){
-            $("#delModal").show();
-            var id = $(this).attr("id");
-            $("#isbn").val(id);
-            var td1 = $(this).children("td:eq(0)");
-            var rday = td1.attr("id");
-            $("#rday").val(rday);
-        });
         $("#test").click(function(){
             $("#delModal").hide();
         });
 
     });
+
+    function fn_check(obj){
+            $("#delModal").show();
+            var id = $(obj).attr("id");
+            $("#isbn").val(id);
+            var td1 = $(obj).children("td:eq(0)");
+            var rday = td1.attr("id");
+            $("#rday").val(rday);
+    }
 </script>
 
-<style>
-
-    .hover { background: rgb(162, 172, 154, 0.2); }
-
-</style>
 
 {% endblock %}

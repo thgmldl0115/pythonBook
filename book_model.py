@@ -23,7 +23,7 @@ def fetch_data_from_oracle():
              , ROUND(AVG(b.r_page), 2) AS read_speed
              , MIN(b.r_date) AS start_dt
              , MAX(b.r_date) AS end_dt
-             , COUNT(*) AS days_since_last_read
+             , COUNT(  b.r_date) AS days_since_last_read
         FROM tb_book a
            , tb_bookrecord b
         WHERE a.b_isbn = b.b_isbn
@@ -84,6 +84,6 @@ print("Root Mean Squared Error (RMSE):", rmse)
 print("R-squared (R^2) Score:", r2)
 
 # 6. 모델과 라벨 인코더 저장
-joblib.dump(model, 'linear_model_1.pkl')          # 모델 저장
-joblib.dump(label_encoder, 'label_encoder_1.pkl')  # 라벨 인코더 저장
+joblib.dump(model, 'linear_model.pkl')          # 모델 저장
+joblib.dump(label_encoder, 'label_encoder.pkl')  # 라벨 인코더 저장
 print("모델과 라벨 인코더가 저장되었습니다.")

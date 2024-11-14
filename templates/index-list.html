@@ -5,7 +5,7 @@
 <div class="container-fluid">
 
     <!-- Page Heading -->
-    <h1 class="h3 mb-2 text-gray-800">Book List</h1>
+    <h1 class="h3 mb-2 text-gray-800"></h1>
     <p class="mb-4">올해 {{ userNm }}님이 읽은 책 목록을 확인해보세요!</p>
 
     <!-- DataTales Example -->
@@ -16,7 +16,16 @@
         <div class="card-body">
             <h6 style="float:right;" id="totalrow"></h6>
             <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered table-hover " id="dataTable" width="100%" cellspacing="0" style="margin-bottom:0.2rem; text-align: center;">
+                    <colgroup>
+                        <col style="width: 30%;">
+                        <col style="width: 22%;">
+                        <col style="width: 8%;">
+                        <col style="width: 10%;">
+                        <col style="width: 10%;">
+                        <col style="width: 11%;">
+                        <col style="width: 9%;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>책 제목</th>
@@ -29,7 +38,9 @@
                         </tr>
                     </thead>
                     <tbody id="mybooks"></tbody>
+
                 </table>
+                <label class="form-label" style="font-size:0.8rem; margin-top:0; margin-bottom:1rem;">도서를 클릭하면 상세 정보를 열람하실 수 있습니다.</label>
 
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-center" id="pagination"></ul>
@@ -44,7 +55,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">상세 독서 기록</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">상세 정보</h5>
                 </div>
                 <div class="modal-body" id="detail">
 
@@ -80,7 +91,7 @@
 
             for (let i = start; i < end && i < mybooks.length; i++) {
                 const book = mybooks[i];
-                str += "<tr id='" + book[7] +"'>";
+                str += "<tr onclick='fn_checkli(this)' id='" + book[7] +"'>";
                 str += "<td>" + book[0] + "</td>";
                 str += "<td>" + book[1] + "</td>";
                 str += "<td>" + book[2] + "</td>";
@@ -112,61 +123,52 @@
         setupPagination();
         renderPage(1);
 
-        $("tr:not(:first)").mouseover(function(){
-            $(this).addClass("hover");
-        });
-        $("tr").mouseout(function(){
-            $(this).removeClass("hover");
-        });
 
-        $("tr:not(:first)").on("click", function(){
-
-            var id = $(this).attr("id");
-            $("#isbn").val(id);
-            fn_detail(id);
-            $("#detailModal").show();
-        });
         $("#test").click(function(){
             $("#detailModal").hide();
         });
 
     });
 
-    function fn_detail(isbn){
+    function fn_checkli(obj){
+            var bookid = $(obj).attr("id");
+            $("#isbn").val(bookid);
+
+            fn_detail(bookid);
+            $("#detailModal").show();
+    }
+
+
+    function fn_detail(bookid){
         let url = "http://127.0.0.1:5000/showdetail";
         $.ajax({
              url : url
             ,type : 'POST'
-            ,data :  JSON.stringify({isbn:isbn})
+            ,data :  JSON.stringify({bookid:bookid})
             ,dataType : 'json'
             ,success : function(res){
-                console.log(res);
                 $("#detail").empty();
                 let str = "";
                 let book = res;
-                str += '<table>';
-                str += '<table style="text-align: center;">';
+                str += '<table border style="text-align: center; border-color:#ffffff; background-color:#a2ac9a33;">';
                 str += '<colgroup>';
-                str += '<col style="width: 25%;">';
-                str += '<col style="width: 25%;">';
-                str += '<col style="width: 25%;">';
-                str += '<col style="width: 25%;">';
+                str += '<col style="width: 30%;"><col style="width: 30%;"><col style="width: 30%;">';
                 str += '</colgroup>';
-                str += '<tr><td colspan="2" rowspan="4"><img src="' + book[7] + '"></td>';
-                str += '<td colspan="2"><strong>' + book[0] + '</strong></td></tr>';
+                str += '<tbody><tr><td rowspan="9" style="background-color:#ffffff;"><img src="' + book[7] + '"  width = "100%;"></td>';
+                str += '<th colspan="2"  style="background-color:#a2ac9a1a;">' + book[0] + '</th></tr>';
                 str += '<tr><td colspan="2">' + book[1] + '</td></tr>';
-                str += '<tr><td colspan="2">' + book[2] + '원</td></tr>';
-                str += '<tr><td>' + book[3] + '</td>';
-                str += '<td>' + book[4] + '</td></tr>';
-                str += '<tr><td>읽기 시작한 날</td>';
-                str += '<td>'+ book[8] +'</td>';
-                str += '<td>다 읽은 날</td>';
+                str += '<tr><th>가격</th><td>' + book[2] + '원</td></tr>';
+                str += '<tr><th>카테고리</th><td>' + book[3] + '</td>';
+                str += '<tr><th>메모</th><td>' + book[4] + '</td></tr>';
+                str += '<tr><th>읽기 시작한 날</th>';
+                str += '<td>'+ book[8] +'</td></tr>';
+                str += '<tr><th>다 읽은 날</th>';
                 str += '<td>'+ book[9] +'</td></tr>';
-                str += '<tr><td>예상 독서 일수</td>';
-                str += '<td>'+ book[5] + '</td>';
-                str += '<td>실제 독서 일수</td>';
+                str += '<tr><th>예상 독서 일수</th>';
+                str += '<td>'+ book[5] + '</td></tr>';
+                str += '<tr><th>실제 독서 일수</th>';
                 str += '<td>'+ book[10] + '</td></tr>';
-                str += '</table>';
+                str += '</tbody></table>';
                 $("#detail").append(str);
             },error(e){
                 console.log(e);
@@ -177,10 +179,5 @@
 
 </script>
 
-<style>
-
-    .hover { background: rgb(162, 172, 154, 0.2); }
-
-</style>
 
 {% endblock %}
