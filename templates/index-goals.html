@@ -110,10 +110,10 @@
                                 <option value="100">(100) 철학</option>
                                 <option value="200">(200) 종교</option>
                                 <option value="300">(300) 사회과학</option>
-                                <option value="400">(400) 어학</option>
-                                <option value="500">(500) 순수과학</option>
-                                <option value="600">(600) 기술과학</option>
-                                <option value="700">(700) 예술</option>
+                                <option value="400">(400) 자연과학</option>
+                                <option value="500">(500) 기술과학</option>
+                                <option value="600">(600) 예술</option>
+                                <option value="700">(700) 언어</option>
                                 <option value="800">(800) 문학</option>
                                 <option value="900">(900) 역사</option>
 
@@ -242,7 +242,7 @@
 
     });
     function fn_getList(){
-        let url = "http://127.0.0.1:5000/findbook"
+        let url = "http://192.168.0.19:5500/findbook"
         let books = $("#searchBook").val();
         $.ajax({
              url : url
@@ -274,7 +274,7 @@
         })
     }
     function fn_bookPrint(){
-        let url = "http://127.0.0.1:5000/findDetail";
+        let url = "http://192.168.0.19:5500/findDetail";
         let b_isbn = $("input:radio[name='goal-book']:checked").val();
         $("#isbn").val(b_isbn);
         $.ajax({
@@ -297,7 +297,7 @@
         })
     }
     function fn_ml(){
-        let url = "http://127.0.0.1:5000/ml";
+        let url = "http://192.168.0.19:5500/ml";
         let b_category = $("#category").val();
         let b_page = $("#page").val()
         $.ajax({
