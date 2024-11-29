@@ -3,7 +3,7 @@
 <h4> 제작의도 : 사용자의 독서 기록을 그래프로 시각화하여 제공함으로써,
 독서 현황을 한눈에 확인할 수 있도록 한다. </h4>
 
-![개인프로젝트2_main](https://github.com/user-attachments/assets/b9b7228e-0711-4562-9840-16e65a230c9e)
+![시연](https://github.com/user-attachments/assets/9d8710d1-bd22-4068-b278-c0e8da96dc12)
 
 
 ## 목차
